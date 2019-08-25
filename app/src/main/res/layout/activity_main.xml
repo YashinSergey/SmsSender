@@ -7,10 +7,15 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <include
+        layout="@layout/app_bar_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 
     <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/writingField"
-        android:layout_width="325dp"
+        android:id="@+id/textInputField"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
@@ -24,7 +29,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        style="Theme.MaterialComponents.Light.NoActionBar"
         android:text="@string/send" />
 
 </RelativeLayout>
