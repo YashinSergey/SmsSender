@@ -4,33 +4,46 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
-
-    private final String KEY = "com.example.smssender.key";
+    public static String address = null;
 
     private TextInputEditText textInputField;
-    private MaterialButton sendBtn;
-    private String smsText;
-    private String phoneNumber = "89875896521";
+    private ListView textListView;
 
     private EditText etPhoneNumber;
     private MaterialButton phoneNumBtn;
-    private Menu myMenu;
+
+    private final List<String> messageList = new ArrayList<>();
+    private ArrayAdapter<String> adapter;
+
+    final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
+    private IntentFilter filter = new IntentFilter(SMS_RECEIVED);
+    private BroadcastReceiver receiver = new SmsMonitor();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +51,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         checkPermissions();
         init();
+
+        adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, messageList);
+        textListView.setAdapter(adapter);
+
+        filter.setPriority(100);
+        registerReceiver(receiver, filter);
     }
 
     private void checkPermissions() {
@@ -46,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     == PackageManager.PERMISSION_DENIED) {
                 String[] permissions = {Manifest.permission.SEND_SMS};
                 requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-
             }
         }
     }
@@ -56,15 +75,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
         textInputField = findViewById(R.id.textInputField);
         etPhoneNumber = findViewById(R.id.etPhoneNumber);
-        sendBtn = findViewById(R.id.sendBtn);
+        MaterialButton sendBtn = findViewById(R.id.sendBtn);
         sendBtn.setOnClickListener(this);
         phoneNumBtn = findViewById(R.id.btnPhoneNum);
+        textListView = findViewById(R.id.listViewSms);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.myMenu = menu;
-        getMenuInflater().inflate(R.menu.menu_main, myMenu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -82,28 +101,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             phoneNumBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    phoneNumber = etPhoneNumber.getText().toString()
+                    MainActivity.address = etPhoneNumber.getText().toString()
                             .replaceAll("-", "")
                             .replaceAll("\\(", "")
                             .replaceAll("\\)", "");
                     etPhoneNumber.setText("");
                     etPhoneNumber.setVisibility(View.INVISIBLE);
                     phoneNumBtn.setVisibility(View.INVISIBLE);
-                    myMenu.close();
+                    hideSoftKeyboard(view);
                 }
             });
         }
     }
 
+    private void hideSoftKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        assert imm != null;
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
     @Override
     public void onClick(View view) {
-        sendSms();
+        if (MainActivity.address == null) {
+            Toast.makeText(getApplicationContext(), "Enter phone number", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!Objects.requireNonNull(textInputField.getText()).toString().equals("")) {
+            sendSms();
+            hideSoftKeyboard(view);
+        }
     }
 
     private void sendSms() {
-        smsText = Objects.requireNonNull(textInputField.getText()).toString();
+        String smsText = Objects.requireNonNull(textInputField.getText()).toString();
         SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(phoneNumber, null,smsText,null,null);
+        smsManager.sendTextMessage(address, null, smsText, null, null);
+        messageList.add(0, textInputField.getText().toString());
+        adapter.notifyDataSetChanged();
         textInputField.setText("");
     }
 }

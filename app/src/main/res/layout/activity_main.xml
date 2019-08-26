@@ -7,11 +7,20 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+
+    <ListView
+        android:id="@+id/listViewSms"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/sendBtn"
+        android:layout_marginTop="55dp"
+        android:layout_alignParentEnd="true"
+        android:background="@color/sms_text_background" />
+
     <include
         layout="@layout/app_bar_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/textInputField"
