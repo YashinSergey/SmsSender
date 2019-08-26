@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">SmsSender</string>
     <string name="send">SEND</string>
+    <string name="send_to">sendTo</string>
+    <string name="enter_phone_number">Enter phone number</string>
+    <string name="ok">Ok</string>
 </resources>
